@@ -2,7 +2,8 @@
 const BASE_URL = 'https://api.sisprotgf.com/api/network/nap_box/';
 
 const getHeaders = () => {
-  const token = localStorage.getItem('auth_token') || '';
+  // Load token securely from environment variables, or silent local storage fallback
+  const token = import.meta.env.VITE_AUTH_TOKEN || localStorage.getItem('auth_token') || '';
   const headers = {
     'Content-Type': 'application/json'
   };
@@ -99,7 +100,7 @@ export const apiService = {
     return response.json();
   },
 
-  // DELETE mock/local (No endpoint specified for DELETE, let's keep it safe)
+  // DELETE https://api.sisprotgf.com/api/network/nap_box/{id}/ (Eliminar)
   async deleteCaja(id) {
     const url = `${BASE_URL}${id}/`;
     const response = await fetch(url, {

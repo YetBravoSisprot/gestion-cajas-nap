@@ -40,21 +40,8 @@ export default function Sidebar({ activeView, onViewChange, searchNav, setSearch
 
       <nav className="sidebar-nav">
         <div className="nav-section">
-          <div className="nav-section-title">Servicios</div>
-          <div 
-            className={`nav-item ${activeView === 'dashboard' ? 'active' : ''}`}
-            onClick={() => onViewChange('dashboard')}
-          >
-            <div className="nav-item-content">
-              <span>📊</span>
-              <span>Dashboard</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="nav-section">
           <div className="nav-section-title">Redes</div>
-          <div className={`nav-item ${['listar', 'crear', 'editar'].includes(activeView) ? 'active' : ''} has-children`}>
+          <div className="nav-item active has-children">
             <div className="nav-item-content">
               <span>🔌</span>
               <strong>Gestión Cajas NAP</strong>
@@ -73,19 +60,6 @@ export default function Sidebar({ activeView, onViewChange, searchNav, setSearch
                 <span>{item.label}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        <div className="nav-section">
-          <div className="nav-section-title">Otros</div>
-          <div 
-            className={`nav-item ${activeView === 'ajustes' ? 'active' : ''}`}
-            onClick={() => onViewChange('ajustes')}
-          >
-            <div className="nav-item-content">
-              <span>⚙️</span>
-              <span>Ajustes</span>
-            </div>
           </div>
         </div>
       </nav>
