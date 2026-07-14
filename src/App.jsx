@@ -16,7 +16,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedBox, setSelectedBox] = useState(null); // for Details modal
   const [editingBox, setEditingBox] = useState(null); // box object being edited
-  const [token, setToken] = useState(localStorage.getItem('auth_token') || '');
+  const [token, setToken] = useState(() => {
+    const saved = localStorage.getItem('auth_token');
+    if (!saved) {
+      const defaultToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc1NDg1NTM0LCJpYXQiOjE3NzU0ODQ5MzQsImp0aSI6ImZkNTI4NDdmY2ZjMTQzYjBhYzRhYzkwYWM0MjNhYzkxIiwidXNlcl9pZCI6MX0.Fbfz2kDOBJSzuN6SqsHrnvbUbtQUzyfUm-S91Ib9YhE';
+      localStorage.setItem('auth_token', defaultToken);
+      return defaultToken;
+    }
+    return saved;
+  });
 
   // Update token in storage and trigger reload
   const handleTokenChange = (e) => {
