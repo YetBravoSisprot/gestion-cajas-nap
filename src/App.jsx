@@ -20,11 +20,13 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedBox, setSelectedBox] = useState(null); // for Details modal
   const [editingBox, setEditingBox] = useState(null); // box object being edited
+  const [apiError, setApiError] = useState('');
 
   // Fetch NAP Boxes
   const fetchBoxes = async () => {
     if (!isAuthenticated) return;
     setLoading(true);
+    setApiError('');
     try {
       const activeSearch = search || searchNav;
       const data = await apiService.getCajas(activeSearch, page, 10);
@@ -41,6 +43,7 @@ export default function App() {
       }
     } catch (err) {
       console.error("Error al cargar cajas NAP:", err);
+      setApiError(err.message || 'Error al conectar con el servidor.');
       setBoxes([]);
       setTotalCount(0);
     } finally {
@@ -144,6 +147,24 @@ export default function App() {
                   Ruta para listar y administrar cajas nap. Al crear, sincroniza NapBoxBackend (default) y NapBoxes (gsoft) con el mismo ID. También asegura los puertos 1..start_port en nap_boxes_port.
                 </p>
               </div>
+
+              {apiError && (
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: '#fef2f2',
+                  borderLeft: '4px solid var(--danger-color)',
+                  color: '#991b1b',
+                  borderRadius: 'var(--radius-md)',
+                  marginBottom: '20px',
+                  fontSize: '0.9rem',
+                  textAlign: 'left'
+                }}>
+                  <strong>⚠️ Error de Conexión / Autenticación:</strong> {apiError}
+                  <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#7f1d1d' }}>
+                    Asegúrese de haber configurado el token de acceso en sus variables de entorno de Vercel como <strong>VITE_AUTH_TOKEN</strong> o en su archivo <strong>.env.local</strong> localmente.
+                  </div>
+                </div>
+              )}
 
               {loading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
