@@ -7,7 +7,7 @@ import { apiService } from './services/api';
 import './App.css';
 
 export default function App() {
-  const [activeView, setActiveView] = useState('listar'); // 'listar' | 'crear' | 'editar'
+  const [activeView, setActiveView] = useState('listar'); // 'dashboard' | 'listar' | 'crear' | 'editar' | 'ajustes'
   const [boxes, setBoxes] = useState([]);
   const [search, setSearch] = useState('');
   const [searchNav, setSearchNav] = useState('');
@@ -16,15 +16,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedBox, setSelectedBox] = useState(null); // for Details modal
   const [editingBox, setEditingBox] = useState(null); // box object being edited
-  const [token, setToken] = useState(() => {
-    const saved = localStorage.getItem('auth_token');
-    if (!saved) {
-      const defaultToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc1NDg1NTM0LCJpYXQiOjE3NzU0ODQ5MzQsImp0aSI6ImZkNTI4NDdmY2ZjMTQzYjBhYzRhYzkwYWM0MjNhYzkxIiwidXNlcl9pZCI6MX0.Fbfz2kDOBJSzuN6SqsHrnvbUbtQUzyfUm-S91Ib9YhE';
-      localStorage.setItem('auth_token', defaultToken);
-      return defaultToken;
-    }
-    return saved;
-  });
+  const [token, setToken] = useState(localStorage.getItem('auth_token') || '');
 
   // Update token in storage and trigger reload
   const handleTokenChange = (e) => {
@@ -35,6 +27,11 @@ export default function App() {
 
   // Fetch NAP Boxes
   const fetchBoxes = async () => {
+    if (!token) {
+      setBoxes([]);
+      setTotalCount(0);
+      return;
+    }
     setLoading(true);
     try {
       const activeSearch = search || searchNav;
@@ -53,7 +50,6 @@ export default function App() {
       }
     } catch (err) {
       console.error("Error al cargar cajas NAP:", err);
-      // Don't show annoying alerts repeatedly if unauthorized, just keep empty list
       setBoxes([]);
       setTotalCount(0);
     } finally {
@@ -148,6 +144,67 @@ export default function App() {
         </div>
 
         <div className="content-body">
+          {activeView === 'dashboard' && (
+            <>
+              <div className="page-header">
+                <h1 className="page-title">Dashboard General</h1>
+                <p className="page-subtitle">Vista general del estado de la red y las cajas NAP registradas.</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px' }}>
+                <div className="card" style={{ padding: '24px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cajas NAP en Red</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '700', margin: '10px 0 5px 0' }}>{totalCount}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--success-color)' }}>● Operativas en producción</div>
+                </div>
+                <div className="card" style={{ padding: '24px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Estado de API</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', margin: '15px 0 5px 0', color: token ? 'var(--success-color)' : 'var(--danger-color)' }}>
+                    {token ? 'Conectado' : 'Requiere Token'}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>https://api.sisprotgf.com</div>
+                </div>
+                <div className="card" style={{ padding: '24px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sincronización Gsoft</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', margin: '15px 0 5px 0', color: 'var(--primary-color)' }}>Automática</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sincronizada con NapBoxBackend</div>
+                </div>
+              </div>
+              <button className="btn btn-primary" onClick={() => setActiveView('listar')}>
+                Ir a la Gestión de Cajas NAP
+              </button>
+            </>
+          )}
+
+          {activeView === 'ajustes' && (
+            <>
+              <div className="page-header">
+                <h1 className="page-title">Ajustes de Configuración</h1>
+                <p className="page-subtitle">Administra los parámetros de conexión y variables de la aplicación.</p>
+              </div>
+              <div className="card" style={{ padding: '30px', textAlign: 'left' }}>
+                <h3 style={{ marginBottom: '15px' }}>Autenticación API</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                  Define el Token Bearer persistente en este navegador para realizar llamadas a la API de Sisprot.
+                </p>
+                <div className="form-group" style={{ maxWidth: '600px' }}>
+                  <label className="form-label">Token Bearer Actual</label>
+                  <textarea
+                    rows={4}
+                    className="form-textarea"
+                    placeholder="Pegar token JWT..."
+                    value={token}
+                    onChange={handleTokenChange}
+                  />
+                </div>
+                <div style={{ marginTop: '20px' }}>
+                  <button className="btn btn-primary" onClick={() => alert('Configuración guardada en el navegador')}>
+                    Guardar Cambios
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
           {activeView === 'listar' && (
             <>
               <div className="page-header">
@@ -163,7 +220,15 @@ export default function App() {
                 </div>
               </div>
 
-              {loading ? (
+              {!token ? (
+                <div className="card" style={{ padding: '50px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🔑</div>
+                  <h3>Se requiere Autenticación</h3>
+                  <p style={{ color: 'var(--text-muted)', maxWidth: '450px', margin: '10px auto 20px auto' }}>
+                    Por favor, ingrese un Token Bearer válido en el campo superior derecho para poder listar y administrar las cajas NAP.
+                  </p>
+                </div>
+              ) : loading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
                   <div style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: 'var(--primary-color)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                   <style>{`
