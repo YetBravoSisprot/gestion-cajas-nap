@@ -3,10 +3,14 @@ import Sidebar from './components/Sidebar';
 import BoxList from './components/BoxList';
 import BoxForm from './components/BoxForm';
 import BoxDetails from './components/BoxDetails';
+import Login from './components/Login';
 import { apiService } from './services/api';
 import './App.css';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!sessionStorage.getItem('authenticated_user');
+  });
   const [activeView, setActiveView] = useState('listar'); // 'listar' | 'crear' | 'editar'
   const [boxes, setBoxes] = useState([]);
   const [search, setSearch] = useState('');
@@ -19,6 +23,7 @@ export default function App() {
 
   // Fetch NAP Boxes
   const fetchBoxes = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
       const activeSearch = search || searchNav;
@@ -45,7 +50,7 @@ export default function App() {
 
   useEffect(() => {
     fetchBoxes();
-  }, [search, searchNav, page]);
+  }, [search, searchNav, page, isAuthenticated]);
 
   // Handle Save (Create / Update)
   const handleSave = async (formData) => {
@@ -88,6 +93,16 @@ export default function App() {
     setActiveView('crear');
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('authenticated_user');
+    setIsAuthenticated(false);
+  };
+
+  // If not authenticated, render Login view
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <>
       <Sidebar
@@ -106,7 +121,16 @@ export default function App() {
         <div className="top-bar">
           <div className="top-bar-title">Gestión de Cajas NAP</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Usuario Administrador</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              {sessionStorage.getItem('authenticated_user')}
+            </span>
+            <button 
+              className="btn btn-secondary" 
+              style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              onClick={handleLogout}
+            >
+              Cerrar Sesión
+            </button>
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>A</div>
           </div>
         </div>
